@@ -17,8 +17,8 @@ from . import rag
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-#MAX_RETRIES = 5
-#current_retries = 0
+MAX_RETRIES = 3
+current_retries = 0
 best_mas_state = {}
 best_error_count = float('inf')
 
@@ -343,7 +343,7 @@ refine = LlmAgent(
         "Para generar el código debes usar la información obtenida por los agentes de búsqueda (search_github y search_local_docs) revisa el codigo LLAMANDO SÍ O SÍ a 'test_mas_code(mas2j_code, agents_dict)' para probar si el sistema compila. Si falla, lee la excepción devuelta en el log y devuelvela, se volvera a buscar más información para que puedas mejorar el código."
         "SIEMPRE debes usar estrictamente el nombre técnico exacto 'test_mas_code', sino es una CATASTROFE DE SINTAXIS"
     ),
-    tools=[]
+    tools=[test_mas_code]
 )
 
 save_code = LlmAgent(
@@ -366,7 +366,7 @@ search_info = ParallelAgent(
 refiner = LoopAgent(
     name="text_refiner",
     sub_agents=[search_info, refine],
-    max_iterations = 5
+    max_iterations = 3
 )
 
 root_agent = SequentialAgent(
