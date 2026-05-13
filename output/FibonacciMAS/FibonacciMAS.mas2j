@@ -1,0 +1,5 @@
+MAS FibonacciMAS {
+    infrastructure: Centralised
+    agents:
+        fibonacci;
+}

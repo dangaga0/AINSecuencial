@@ -243,78 +243,41 @@ model = LiteLlm(
     api_base="https://api.poligpt.upv.es/",
     api_key="sk-LFXs1kjaSxtEDgOMlPUOpA"
 )
-"""
-root_agent = LlmAgent(
-    name="BDI_Developer",
-    model=model,
-    description="Agente experto en desarrollador proyectos Multi-Agente BDI en Jason",
-    instruction=(
-        "Eres un agente experto programador en AgentSpeak y Jason, orientado a sistemas Multi-Agente BDI (Belief-Desire-Intention). "
-        "Tu objetivo es crear proyectos MAS completos que cumplan con las especificaciones del usuario.\n\n"
-        "INSTRUCCIONES CRÍTICAS:\n"
-        "1. Analiza lo que pide el usuario y diseña la estructura del sistema: un archivo de configuración .mas2j y uno o más agentes en archivos .asl.\n"
-        "2. IMPORTANTE SINTAXIS .mas2j: El archivo de configuración DEBE seguir estrictamente esta estructura:\n"
-        "   MAS nombre_proyecto {\n"
-        "       infrastructure: Centralised\n"
-        "       agents:\n"
-        "           nombre_agente_1;\n"
-        "           nombre_agente_2 #3; /* Si necesitas instanciar 3 copias */\n"
-        "   }\n"
-        "   REGLAS MAS2J: Usa 'MAS' en mayúsculas. NO pongas la extensión '.asl' en la lista de agentes. Acaba cada declaración de agente con punto y coma (;).\n"
-        "3. IMPORTANTE SINTAXIS AGENTSPEAK (.asl):\n"
-        "   - Las creencias y objetivos se deben declarar al principio del fichero, antes de los planes.\n"
-        "   - Las variables DEBEN empezar con letra Mayúscula (ej. PosX). Los átomos y literales con minúscula (ej. mesa).\n"
-        "   - Para poder operar con un valor de una creencia hay que intanciarlo siempre primero en una variable.\n"
-        "   - El formato estricto de un plan es: +!meta(Arg) : contexto <- accion1; accion2. ¡ATENCIÓN: TODOS los planes y creencias DEBEN terminar obligatoriamente con un PUNTO FINAL (.)!\n"
-        "   - ¡Evita el error 'No plan for event'! Debes añadir SIEMPRE un plan de contingencia genérico por si falla el contexto: +!meta(_) <- .print(\"Fallo en \", meta).\n"
-        "   - Las internal actions nativas de Jason siempre llevan un punto delante (ej. .print(\"Hola\"); .wait(1000);) y recuerda cerrar el plan con PUNTO (.).\n"
-        "   - Para iniciar la ejecución debes añadir una creencia o un objetivo inicial en el agente que inicie el sistema. Por ejemplo: DEBES poner \"!start.\" para poder ejecutar al inicio el plan \"+!start <- accion. \" \n"
-        "4. Si necesitas inspiración o código de ejemplo, utiliza la herramienta 'search_github_examples(path)'.\n"
-        "5. Si necesitas teoría técnica, tutoriales o sintaxis de Programación BDI, usa 'search_local_docs(query)'.\n"
-        "6. REGLA PROHIBITIVA ESTRICTA: ESTÁ TOTALMENTE PROHIBIDO DEVOLVER EL CÓDIGO FINAL DE JASON DIRECTAMENTE EN LA RESPUESTA DE TEXTO (MARKDOWN).\n"
-        "7. PASO 1 (INVESTIGACIÓN OBLIGATORIA): ANTES de proponer ningún código, ESTÁS OBLIGADO a llamar a la herramienta 'search_local_docs(query)'. Debes buscar en la teoría oficial cómo se implementa lo que el usuario pide.\n"
-        "8. PASO 2 (Verificación Práctica): Tras investigar y diseñar el código mentalmente, LLAMA SÍ O SÍ a 'test_mas_code(mas2j_code, agents_dict)' para probar si el sistema compila.\n"
-        "9. PASO 3 (Corrección Iterativa): Si 'test_mas_code' falla, lee la excepción devuelta en el log, modifica tu código y vuelve a ejecutar 'test_mas_code' (límite de 5 intentos).\n"
-        "10. PASO 4 (Guardado Final): Únicamente cuando la prueba no dé errores o agotes tus intentos, estás OBLIGADO a llamar a 'save_mas_code(mas_name, mas2j_code, agents_dict)' para persistir el proyecto.\n"
-        "11. PASO 5 (Notificar al usuario): Informa del éxito de la creación y da un breve resumen.\n"
-        "12. CATASTROFE DE SINTAXIS (MUY IMPORTANTE): Al usar las herramientas, SIEMPRE debes usar estrictamente el nombre técnico exacto ('search_github_examples', 'search_local_docs', 'test_mas_code', 'save_mas_code'). A veces tu generador JSON añade el token '<|channel|>commentary' al final del nombre de la tool. ESTO PROVOCA UN ERROR FATAL. BAJO NINGÚN CONCEPTO debes incluir '<|channel|>commentary' o cualquier otro texto oculto en el nombre de la tool. Limítate a generar el nombre en minúsculas y tal cual es."
-    ),
-    tools=[search_github_examples, rag.search_local_docs, test_mas_code, save_mas_code]
-)
-"""
 
-analize_agent = LlmAgent(
-    name="analize",
+save_code = LlmAgent(
+    name="save_mas_code",
     model=model,
-    description="Agente experto en desarrollador proyectos Multi-Agente BDI en Jason.",
+    description="Eres un agente que se encarga de guardar información",
     instruction=(
-        "Eres un agente experto programador en AgentSpeak y Jason, orientado a sistemas Multi-Agente BDI (Belief-Desire-Intention). "
-        "Tu objetivo es crear proyectos MAS completos que cumplan con las especificaciones del usuario."
-        "Los siguientes agentes se encargarán de buscar información y documentación relevante al código, indica que tipo de información deberían bucar para ayudar a contruir el sistema pedido por el usuario."
+        "El código Jason a guardar está en {code}.\n"
+        "estás OBLIGADO a llamar a 'save_mas_code(mas_name, mas2j_code, agents_dict)' para persistir el proyecto.\n"
+        "Informa del éxito de la creación y da un breve resumen.\n"
+        "SIEMPRE debes usar estrictamente el nombre técnico exacto 'save_mas_code' , sino es una CATASTROFE DE SINTAXIS"
     ),
-    tools=[]
+    tools=[save_mas_code]
 )
 
-search_github_agent = LlmAgent(
-    name="search_github",
-    model=model,
-    description="Eres un agente experto en buscar inspiración o codigos de ejemplo en los repositorios de GitHub sobre codigo Json BDI.",
-    instruction=(
-        "Busca en github ejemplos de código relacionados con la consulta del usuario. Para ello utiliza la herramienta 'search_github_examples(path)'."
-        "SIEMPRE debes usar estrictamente el nombre técnico exacto 'search_github_examples' , sino es una CATASTROFE DE SINTAXIS"
-    ),
-    tools=[search_github_examples]
-)
+# TERMINAR EL LOOP PRONTO
+from google.adk.agents.callback_context import CallbackContext
 
-search_local_docs = LlmAgent(
-    name="search_local_docs",
+def escalate_if_done(callback_context: CallbackContext) -> None:
+    errores = callback_context.state.get("errores", "")
+    if "TODO_CORRECTO" in errores:
+        callback_context.actions.escalate = True
+
+tester = LlmAgent(
+    name="tester",
     model=model,
-    description="Eres un agente experto en sintaxis y teoría tecnica de Jason.",
+    description="Eres un agente experto programador en AgentSpeak y Jason, orientado a sistemas Multi-Agente BDI (Belief-Desire-Intention).",
     instruction=(
-        "Busca en la documentación local ejemplos de teoría técnica, tutoriales o sintaxis de Programación BDI relevante. Para ello utiliza la herramienta 'search_local_docs(query)'."
-        "SIEMPRE debes usar estrictamente el nombre técnico exacto 'search_local_docs' , sino es una CATASTROFE DE SINTAXIS"
+        "Tú objetivo es revisar el código en {code} hecho hasta ahora y determinar si se continua perfeccionando el código o ya funciona como el usuario habia indicado en el prompt"
+        "Para comprobar si el código funciona ejecuta 'test_mas_code'"
+        "- Si consideras que es correcto responde con 'TODO_CORRECTO'"
+        "- Si consideras que es incorrecto devuelve lo que se debe corregir"
     ),
-    tools=[rag.search_local_docs]
+    tools=[test_mas_code],
+     after_agent_callback=escalate_if_done,
+    output_key="errores"
 )
 
 refine = LlmAgent(
@@ -323,6 +286,8 @@ refine = LlmAgent(
     description="Agente experto en desarrollador proyectos Multi-Agente BDI en Jason.",
     instruction=(
         "Eres un agente experto programador en AgentSpeak y Jason, orientado a sistemas Multi-Agente BDI (Belief-Desire-Intention). "
+        "Si existe la clave {errores} en el contexto, úsala para saber qué corregir. "
+        "Si no existe aún, genera el código desde cero basándote en {git} y {docs}."
         "1. Analiza lo que pide el usuario y diseña la estructura del sistema: un archivo de configuración .mas2j y uno o más agentes en archivos .asl.\n"
         "2. IMPORTANTE SINTAXIS .mas2j: El archivo de configuración DEBE seguir estrictamente esta estructura:\n"
         "   MAS nombre_proyecto {\n"
@@ -342,36 +307,57 @@ refine = LlmAgent(
         "   - Para iniciar la ejecución debes añadir una creencia o un objetivo inicial en el agente que inicie el sistema. Por ejemplo: DEBES poner \"!start.\" para poder ejecutar al inicio el plan \"+!start <- accion. \" \n"
         "Para generar el código debes usar la información obtenida por los agentes de búsqueda (search_github y search_local_docs) revisa el codigo LLAMANDO SÍ O SÍ a 'test_mas_code(mas2j_code, agents_dict)' para probar si el sistema compila. Si falla, lee la excepción devuelta en el log y devuelvela, se volvera a buscar más información para que puedas mejorar el código."
         "SIEMPRE debes usar estrictamente el nombre técnico exacto 'test_mas_code', sino es una CATASTROFE DE SINTAXIS"
+        "NO HACE FALTA QUE COMENTES EL CÓDIGO"
     ),
-    tools=[test_mas_code]
+    tools=[test_mas_code],
+    output_key="code"
 )
 
-save_code = LlmAgent(
-    name="save_mas_code",
+search_github_agent = LlmAgent(
+    name="search_github",
     model=model,
-    description="Eres un agente que se encarga de guardar información",
+    description="Eres un agente experto en buscar inspiración o codigos de ejemplo en los repositorios de GitHub sobre codigo Json BDI.",
     instruction=(
-        "estás OBLIGADO a llamar a 'save_mas_code(mas_name, mas2j_code, agents_dict)' para persistir el proyecto.\n"
-        " Informa del éxito de la creación y da un breve resumen.\n"
-        "SIEMPRE debes usar estrictamente el nombre técnico exacto 'save_mas_code' , sino es una CATASTROFE DE SINTAXIS"
+        "Busca en github ejemplos de código relacionados con la consulta del usuario. Para ello utiliza la herramienta 'search_github_examples(path)'."
+        "SIEMPRE debes usar estrictamente el nombre técnico exacto 'search_github_examples' , sino es una CATASTROFE DE SINTAXIS"
     ),
-    tools=[save_mas_code]
+    tools=[search_github_examples],
+    output_key="git"
 )
 
-search_info = ParallelAgent(
-    name="search_info",
-    sub_agents=[search_github_agent, search_local_docs]
+search_loc_docs = LlmAgent(
+    name="search_docs",
+    model=model,
+    description="Eres un agente experto en sintaxis y teoría tecnica de Jason.",
+    instruction=(
+        "Busca en la documentación local ejemplos de teoría técnica, tutoriales o sintaxis de Programación BDI relevante. Para ello utiliza la herramienta 'search_local_docs(query)'."
+        "SIEMPRE debes usar estrictamente el nombre técnico exacto 'search_local_docs' , sino es una CATASTROFE DE SINTAXIS"
+    ),
+    tools=[rag.search_local_docs],
+    output_key="docs"
 )
 
 refiner = LoopAgent(
     name="text_refiner",
-    sub_agents=[search_info, refine],
+    sub_agents=[refine, tester],
     max_iterations = 3
+)
+
+search_info = ParallelAgent(
+    name="search_info",
+    sub_agents=[search_github_agent, search_loc_docs]
+)
+
+init = LlmAgent(
+    name="iniciador",
+    model=model,
+    description="Solo escribes una cosa",
+    instruction=("Escribe 'Iniciando'"),
+    tools=[],
+    output_key="errores"
 )
 
 root_agent = SequentialAgent(
     name="news_pipeline",
-    sub_agents=[analize_agent, refiner, save_code]
+    sub_agents=[search_info, init, refiner, save_code]
 )
-
-
