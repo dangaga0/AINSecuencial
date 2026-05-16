@@ -272,6 +272,7 @@ tester = LlmAgent(
     instruction=(
         "Tú objetivo es revisar el código en {code} hecho hasta ahora y determinar si se continua perfeccionando el código o ya funciona como el usuario habia indicado en el prompt"
         "Para comprobar si el código funciona ejecuta 'test_mas_code'"
+        "Asegurate que la sintaxis es correcta puedes utilizar {git} y {docs}"
         "- Si consideras que es correcto responde con 'TODO_CORRECTO'"
         "- Si consideras que es incorrecto devuelve lo que se debe corregir"
     ),

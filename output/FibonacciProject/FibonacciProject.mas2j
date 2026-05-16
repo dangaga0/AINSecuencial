@@ -1,5 +1,0 @@
-MAS FibonacciProject {
-    infrastructure: Centralised
-    agents:
-        fibAgent;
-}

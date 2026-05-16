@@ -1,5 +1,0 @@
-MAS fibProject {
-    infrastructure: Centralised
-    agents:
-        fibAgent;
-}
