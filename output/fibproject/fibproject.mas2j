@@ -1,6 +1,5 @@
-MAS FibonacciProject {
+MAS fibproject {
     infrastructure: Centralised
-    plan-source: fibAgent.asl
     agents:
         fibAgent;
 }
