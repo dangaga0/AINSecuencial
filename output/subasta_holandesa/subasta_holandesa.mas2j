@@ -1,0 +1,7 @@
+MAS subasta_holandesa {
+    infrastructure: Centralised
+    agents:
+        subastador;
+        participante1;
+        participante2;
+}
