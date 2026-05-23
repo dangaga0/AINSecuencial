@@ -1,5 +1,7 @@
 MAS pingpong {
     agents:
+        //ping;
+        //pong
         pinger;
         pongner;
 }
