@@ -1,2 +1,6 @@
 __pycache__
 .env
+.rag_db
+
+.conda
+.venv

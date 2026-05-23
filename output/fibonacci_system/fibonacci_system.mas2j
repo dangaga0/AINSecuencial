@@ -1,0 +1,5 @@
+MAS fibonacci_system {
+    infrastructure: Centralised
+    agents:
+        FibAgent;
+}

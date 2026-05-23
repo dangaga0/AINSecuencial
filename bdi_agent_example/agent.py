@@ -245,7 +245,7 @@ model = LiteLlm(
 )
 
 save_code = LlmAgent(
-    name="save_mas_code",
+    name="saver_code",
     model=model,
     description="Eres un agente que se encarga de guardar información",
     instruction=(
@@ -258,12 +258,15 @@ save_code = LlmAgent(
 )
 
 # TERMINAR EL LOOP PRONTO
-from google.adk.agents.callback_context import CallbackContext
-
-def escalate_if_done(callback_context: CallbackContext) -> None:
-    errores = callback_context.state.get("errores", "")
-    if "TODO_CORRECTO" in errores:
-        callback_context.actions.escalate = True
+from google.adk.tools.tool_context import ToolContext
+# --- Tool Definition ---
+def exit_loop(tool_context: ToolContext):
+    """Call this function ONLY when the critique indicates no further changes are needed, signaling the iterative process should end."""
+    print(f"  [Tool Call] exit_loop triggered by {tool_context.agent_name}")
+    tool_context.actions.escalate = True
+    tool_context.actions.skip_summarization = True
+    # Return empty dict as tools should typically return JSON-serializable output
+    return {}
 
 tester = LlmAgent(
     name="tester",
@@ -273,11 +276,10 @@ tester = LlmAgent(
         "Tú objetivo es revisar el código en {code} hecho hasta ahora y determinar si se continua perfeccionando el código o ya funciona como el usuario habia indicado en el prompt"
         "Para comprobar si el código funciona ejecuta 'test_mas_code'"
         "Asegurate que la sintaxis es correcta puedes utilizar {git} y {docs}"
-        "- Si consideras que es correcto responde con 'TODO_CORRECTO'"
+        "- Si consideras que es correcto llama a exit_loop"
         "- Si consideras que es incorrecto devuelve lo que se debe corregir"
     ),
-    tools=[test_mas_code],
-     after_agent_callback=escalate_if_done,
+    tools=[test_mas_code, exit_loop],
     output_key="errores"
 )
 
@@ -338,27 +340,26 @@ search_loc_docs = LlmAgent(
     output_key="docs"
 )
 
+# Iniciar error a nada
+from google.adk.agents.callback_context import CallbackContext
+
+def ini_error(callback_context: CallbackContext) -> None:
+    callback_context.state.update({"errores": ""})
+    return
+
 refiner = LoopAgent(
     name="text_refiner",
     sub_agents=[refine, tester],
-    max_iterations = 3
+    max_iterations = 3,
+    before_agent_callback=ini_error
 )
 
 search_info = ParallelAgent(
     name="search_info",
-    sub_agents=[search_github_agent, search_loc_docs]
-)
-
-init = LlmAgent(
-    name="iniciador",
-    model=model,
-    description="Solo escribes una cosa",
-    instruction=("Escribe 'Iniciando'"),
-    tools=[],
-    output_key="errores"
+    sub_agents=[search_github_agent, search_loc_docs],
 )
 
 root_agent = SequentialAgent(
     name="news_pipeline",
-    sub_agents=[search_info, init, refiner, save_code]
+    sub_agents=[search_info, refiner, save_code]
 )
