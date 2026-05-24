@@ -1,0 +1,6 @@
+MAS pingpong {
+
+    agents: ping;
+            pong;
+
+}
