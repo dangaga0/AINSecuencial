@@ -240,8 +240,8 @@ def save_mas_code(mas_name: str, mas2j_code: str = "", agents_dict: dict = None)
 model = LiteLlm(
     #model="openai/gpt-oss-120b", 
     model= "openai/Qwen3.6-35B-A3B-FP8",
-    api_base="https://api.poligpt.upv.es/",
-    api_key="sk-LFXs1kjaSxtEDgOMlPUOpA"
+    api_base="...",
+    api_key="..."
 )
 
 root_agent = LlmAgent(

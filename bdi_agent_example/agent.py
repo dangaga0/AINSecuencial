@@ -237,11 +237,12 @@ def save_mas_code(mas_name: str, mas2j_code: str = "", agents_dict: dict = None)
         return f"ERROR inesperado al guardar: {e}"
 
 # Configuramos el modelo, asumiendo la configuración habitual
+import os
 model = LiteLlm(
     #model="openai/gpt-oss-120b", 
     model= "openai/Qwen3.6-35B-A3B-FP8",
-    api_base="https://api.poligpt.upv.es/",
-    api_key="sk-LFXs1kjaSxtEDgOMlPUOpA"
+    api_base=os.getenv("OPENAI_API_BASE"),
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 save_code = LlmAgent(
